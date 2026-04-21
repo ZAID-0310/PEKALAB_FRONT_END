@@ -1,0 +1,208 @@
+/* Contenedor Principal */
+.page-horario-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Encabezado */
+.horario-header {
+    text-align: center;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.horario-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+}
+
+.horario-header p {
+    margin: 10px 0 0;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* Grid de Tarjetas */
+.grid-horarios {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Card Individual */
+.card-turno-individual {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #eef0f2;
+}
+
+.card-turno-individual:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+/* Cabecera de la Card (Fecha) */
+.card-header-fecha {
+    background-color: #f1f4f8;
+    padding: 12px 20px;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.fecha-texto {
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: capitalize;
+    font-size: 1.1rem;
+}
+
+/* Cuerpo de la Card */
+.card-body-pkalab {
+    padding: 20px;
+}
+
+.info-item {
+    margin-bottom: 15px;
+}
+
+.info-item .label {
+    display: block;
+    font-size: 0.75rem;
+    color: #95a5a6;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.info-item .valor {
+    font-size: 1.2rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.info-item .valor-mini {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    display: block;
+    line-height: 1.4;
+}
+
+/* Fila de Entrada/Salida */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    background: #fdfdfd;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed #dcdde1;
+    margin-bottom: 15px;
+}
+
+/* Footer y Badge */
+.card-footer-status {
+    padding: 12px 20px;
+    background-color: #fafafa;
+    text-align: right;
+}
+
+.status-badge {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Estado Vacío */
+.no-turnos-box {
+    text-align: center;
+    padding: 50px;
+    background: white;
+    border-radius: 12px;
+    color: #7f8c8d;
+    border: 2px dashed #bdc3c7;
+}
+
+/* Cargando */
+.pkalab-loader {
+    text-align: center;
+    padding: 100px;
+    font-size: 1.2rem;
+    color: #34495e;
+    font-weight: bold;
+}
+
+/* Responsive para celulares */
+@media (max-width: 480px) {
+    .page-horario-container {
+        padding: 10px;
+    }
+    
+    .grid-horarios {
+        grid-template-columns: 1fr;
+    }
+
+    .horario-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+/* Estilo del Header con Buscador */
+.horario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Para que en móviles el buscador baje */
+    gap: 20px;
+}
+
+.search-box {
+    flex: 1;
+    max-width: 400px;
+    min-width: 250px;
+}
+
+.input-search {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.input-search:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Estilo de la info de tienda dentro de la celda */
+.tienda-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.tienda-info small {
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+.no-resultados {
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
+    font-style: italic;
+}

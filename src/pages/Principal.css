@@ -1,0 +1,265 @@
+/* Contenedor principal que divide pantalla en dos */
+.layout-container {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Sidebar lateral unificado */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: #1e293b;
+    color: white;
+    padding: 60px 20px 20px 20px; /* Mantiene espacio para el botón hamburguesa */
+    display: flex;
+    flex-direction: column;
+    /* Quitamos space-between para que el logout suba con los demás */
+    justify-content: flex-start; 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 10;
+    transition: all 0.3s ease;
+    height: 100vh; /* Se mantiene estático ocupando el alto de pantalla */
+}
+
+.sidebar-header {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 10px;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #f8fafc;
+}
+
+.rol-badge {
+    background-color: #475569;
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+}
+
+/* Navegación */
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar button {
+    background: #334155;
+    border: none;
+    color: #e2e8f0;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+    font-size: 1rem;
+}
+
+.sidebar button:hover {
+    background: #475569;
+}
+
+.btn-logout {
+    background-color: #ef4444 !important;
+    margin-top: 20px; /* Lo separa un poco del menú de arriba */
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    color: #e2e8f0;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-logout:hover {
+    background-color: #dc2626 !important;
+}
+/* Área de contenido principal */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    background-color: #f8fafc;
+    overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Footer del token */
+.footer-token {
+    margin-top: auto;
+    padding-top: 20px;
+    color: #94a3b8;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+}
+/* Este es el botón que abre/cierra */
+.hamburger-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100; /* CLAVE: Debe ser mayor al de la sidebar (1000) */
+    background: #1e293b; 
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Opcional: Cambiar el color cuando el menú está abierto para que se note más */
+.sidebar-collapsed .hamburger-btn {
+    background: #334155; 
+}
+
+/* --- Ajustes a la Sidebar --- */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: #1e293b;
+    color: white;
+    padding: 60px 20px 20px 20px; /* Espacio para el botón de arriba */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease; /* Animación suave */
+}
+
+/* --- Estado Colapsado --- */
+.sidebar-collapsed .sidebar {
+    width: 80px;
+    min-width: 80px;
+    padding: 60px 10px 20px 10px;
+}
+
+/* Ocultamos el texto y el badge cuando está colapsado */
+.sidebar-collapsed .sidebar span, 
+.sidebar-collapsed .rol-badge,
+.sidebar-collapsed .sidebar-header h2 {
+    display: none;
+}
+
+.sidebar-collapsed .sidebar button {
+    text-align: center;
+    justify-content: center;
+    font-size: 1.3rem; /* Iconos más grandes al estar solo */
+}
+
+.sidebar-collapsed .hamburger-btn {
+    left: 20px;
+}
+
+/* Responsivo para celulares (se oculta totalmente) */
+@media (max-width: 768px) {
+    .sidebar {
+        position: absolute;
+        left: -260px;
+        height: 100%;
+    }
+    
+    .sidebar-collapsed .sidebar {
+        left: 0;
+        width: 260px;
+    }
+}
+
+/*tabla responsive/
+/* --- OPTIMIZACIÓN RESPONSIVA --- */
+
+/* 1. Contenedor General Adaptable */
+.usuarios-container {
+    padding: 20px; /* Reducimos padding en móviles */
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* 2. Formulario Inteligente */
+.edit-form-container {
+    display: grid; /* Cambiamos a Grid para mejor control */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    padding: 15px;
+}
+
+.edit-form-container h3, 
+.edit-form-container label,
+.edit-form-container .gm-style { /* El mapa */
+    grid-column: 1 / -1; /* Ocupan todo el ancho siempre */
+}
+
+/* 3. Tabla con Scroll Lateral */
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto; /* Permite deslizar la tabla en celular */
+    margin-top: 20px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+}
+
+.tabla-pkalab {
+    min-width: 700px; /* Evita que las columnas se aplasten demasiado */
+}
+
+@media (max-width: 768px) {
+    /* 1. Aseguramos que el sidebar no ocupe NADA de espacio cuando está oculto */
+    .sidebar-collapsed .hamburger-btn {
+        left: 210px; /* Esto mueve la X hacia la derecha del menú para que no estorbe */
+        transition: left 0.3s ease;
+    }
+    .sidebar {
+        position: fixed;
+        left: -280px; /* Un poco más de su ancho para asegurar que esconda la sombra */
+        width: 260px;
+        height: 100vh;
+        z-index: 1000;
+        transition: all 0.3s ease-in-out;
+        box-shadow: none; /* Quitamos la sombra para que no se vea el borde */
+    }
+
+    /* 2. Cuando se abre, le devolvemos la sombra y lo ponemos en 0 */
+    .sidebar-collapsed .sidebar {
+        left: 0;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+    }
+
+    /* 3. ¡ESTO ES LO MÁS IMPORTANTE! */
+    /* Forzamos al contenedor principal a no dejar espacio a la izquierda */
+    .layout-container {
+        display: block; /* En móvil dejamos de usar flex para evitar que reserve espacio */
+        width: 100%;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 70px 15px 20px 15px; /* Espacio para que la hamburguesa no tape el título */
+        width: 100% !important;
+        min-width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    /* 4. Ajuste del botón hamburguesa */
+    .hamburger-btn {
+        left: 10px; /* Lo pegamos un poco más al borde */
+        background: #1e293b; /* Color sólido para que resalte sobre el fondo claro */
+    }
+}
