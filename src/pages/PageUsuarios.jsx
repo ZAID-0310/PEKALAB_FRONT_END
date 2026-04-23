@@ -20,7 +20,7 @@ export const PageUsuarios = () => {
         correo: '',
         telefono: '',
         password: '',
-        rol: 'ADMINISTRADOR',
+        rol: 'MOTORIZADO',//EL ROL VACIO 
         estado: true,
         latitud: centerLima.lat,
         longitud: centerLima.lng
@@ -245,8 +245,9 @@ export const PageUsuarios = () => {
                 </GoogleMap>
 
                 <select value={formData.rol} onChange={e => setFormData({ ...formData, rol: e.target.value })}>
-                    <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+                    
                     <option value="MOTORIZADO">MOTORIZADO</option>
+                    <option value="ADMINISTRADOR">ADMINISTRADOR</option>
                 </select>
 
                 <div className="button-group">

@@ -13,6 +13,7 @@ html,body{
     padding: 20px;
     box-sizing: border-box;
     background-color: #f9fbfd;
+    padding-bottom: 60px;
 }
 
 .main-content, .layout-container {
