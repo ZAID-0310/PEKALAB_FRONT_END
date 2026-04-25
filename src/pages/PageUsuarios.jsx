@@ -268,7 +268,7 @@ export const PageUsuarios = () => {
             console.error("Error en la conexión:", error);
         }
     };
-    
+
     //NO SE ESTA UTILIZANDO
     const eliminarUsuario = (id) => {
         if (!window.confirm("¿Está seguro de eliminar este usuario?")) return;
@@ -284,7 +284,7 @@ export const PageUsuarios = () => {
 
     return (
         <div className="usuarios-container">
-            <div className="edit-form-container">
+            <div id='formulario-registro' style={{ scrollSnapMarginTop: '100' }} className="edit-form-container">
                 <h3>{formData.id ? `Editando a: ${formData.nombre}` : "Registrar Nuevo Personal"}</h3>
 
                 <input
@@ -405,17 +405,33 @@ export const PageUsuarios = () => {
                                 </td>
 
                                 <td>
-                                    {/* Lápiz para editar */}
                                     <button
                                         className="btn-icon edit"
                                         disabled={!u.estado}
                                         onClick={() => {
+                                            console.log("Intentando subir al formulario..."); // Para verificar en consola
+
                                             const lat = u.ubicacionCasa ? u.ubicacionCasa.coordinates[1] : centerLima.lat;
                                             const lng = u.ubicacionCasa ? u.ubicacionCasa.coordinates[0] : centerLima.lng;
+
+                                            // Cargar datos
                                             setFormData({ ...u, latitud: lat, longitud: lng, password: '' });
-                                            window.scrollTo(0, 0);
+
+                                            // Intentar subir de la forma más robusta posible
+                                            const elemento = document.getElementById('formulario-registro');
+                                            if (elemento) {
+                                                elemento.scrollIntoView({
+                                                    behavior: 'smooth',
+                                                    block: 'start'
+                                                });
+                                            } else {
+                                                // Si el ID falla, forzamos el inicio de la página
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }
                                         }}
-                                    >✏️</button>
+                                    >
+                                        ✏️
+                                    </button>
 
                                     {/* Switch de habilitar/deshabilitar */}
                                     <button
