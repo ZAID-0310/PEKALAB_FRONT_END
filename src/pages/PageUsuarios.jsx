@@ -11,6 +11,8 @@ export const PageUsuarios = () => {
     const [usuarios, setUsuarios] = useState([]);
     const [cargando, setCargando] = useState(true);
     const autocompleteRef = useRef(null);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+    const [direccionTexto, setDireccionTexto] = useState("Cargando dirección...");
 
     const formInicial = {
         id: null,
@@ -34,6 +36,60 @@ export const PageUsuarios = () => {
         googleMapsApiKey: "AIzaSyAQf8CE1mCu7K3VjVpuKVemI4Yr7ax9uZA", // Asegúrate de que esta API Key sea válida
         libraries: libraries
     });
+    //obtener la direccion atraves de las cordenadas
+    const obtenerDireccionTexto = (lat, lng, callback) => {
+        if (!window.google) return;
+        const geocoder = new window.google.maps.Geocoder();
+        const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+        geocoder.geocode({ location: latlng }, (results, status) => {
+            if (status === "OK") {
+                if (results[0]) {
+                    // results[0].formatted_address trae la dirección completa
+                    callback(results[0].formatted_address);
+                } else {
+                    callback("Dirección no encontrada");
+                }
+            } else {
+                callback("Error de Geocodificación");
+            }
+        });
+    };
+
+    // --- NUEVA FUNCIÓN PARA EL PASO 2 ---
+    const verDetalles = (u) => {
+        setUsuarioSeleccionado(u);
+        setDireccionTexto("Cargando..."); // Texto temporal mientras Google responde
+
+        // Extraemos latitud y longitud del objeto del usuario
+        const lat = u.ubicacionCasa ? u.ubicacionCasa.coordinates[1] : null;
+        const lng = u.ubicacionCasa ? u.ubicacionCasa.coordinates[0] : null;
+
+        if (lat && lng) {
+            // Llamamos a la función que creamos antes para convertir coordenadas a texto
+            obtenerDireccionTexto(lat, lng, (dir) => {
+                setDireccionTexto(dir);
+            });
+        } else {
+            setDireccionTexto("Sin ubicación registrada");
+        }
+    };
+
+    //conexion con el api de whasap
+    const abrirWhatsapp = (telefono) => {
+        if (!telefono) {
+            alert("❌ Este usuario no tiene un teléfono registrado");
+            return;
+        }
+        // Limpiamos el número de cualquier caracter que no sea dígito
+        const numeroLimpio = telefono.replace(/\D/g, '');
+
+        // Si estás en Perú, el código de país es 51. 
+        // Usamos api.whatsapp.com para que funcione en PC y Celular
+        const url = `https://api.whatsapp.com/send?phone=51${numeroLimpio}&text=Hola, me comunico de la administración.`;
+
+        window.open(url, '_blank');
+    };
 
     // --- FUNCIÓN CORREGIDA: BUSCA POR DNI ---
     const verificarDNI = async (dniDigitado) => {
@@ -100,11 +156,68 @@ export const PageUsuarios = () => {
     useEffect(() => { if (token) obtenerUsuarios(); }, [token]);
 
     const guardarUsuario = async () => {
-        // Validaciones básicas
-        const patronLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/;
+        // Validaciones básicas para nombre
+        const patronLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/;//solo acepta letras 
+        const patronCorreo = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;//formato de correo
+        const patronDni = /^\d{8}$/; // Exactamente 8 números
+        const patronTelefono = /^9\d{8}$/; // Valida que empiece con 9 y tenga 9 dígitos en total
+
+
+        // --- VALIDACIÓN DE DNI ---
+        if (!patronDni.test(formData.dni)) {
+            alert("❌ El DNI debe tener exactamente 8 dígitos numéricos");
+            return;
+        }
+
+        // --- VALIDACIÓN DE TELÉFONO (Obligatorio) ---
+        if (!formData.telefono || formData.telefono.trim() === "") {
+            alert("❌ El teléfono es obligatorio para el registro");
+            return;
+        }
+        if (!patronTelefono.test(formData.telefono)) {
+            alert("❌ El teléfono debe tener 9 dígitos y empezar con 9");
+            return;
+        }
+
+        //validad si en campo esta vacio
+        if (!formData.nombre.trim()) {
+            alert("❌ El nombre no puede estar vacío");
+            return;
+        }
+
+        //validar si el campo esta vacio
+        if (!formData.apellido.trim() || !patronLetras.test(formData.apellido)) {
+            alert("❌ Verifique el apellido (solo letras y no puede estar vacío)");
+            return;
+        }
+
+        // Validaciones básicas para nombre
         if (!patronLetras.test(formData.nombre)) {
             alert("❌ El nombre solo debe contener letras");
             return;
+        }
+        // Validaciones básicas para apellido
+
+        if (!patronLetras.test(formData.apellido)) {
+            alert("❌ El nombre solo debe contener letras");
+            return;
+        }
+
+        //Validaciones básicas el campo de correo
+        if (!patronCorreo.test(formData.correo)) {
+            alert("❌ El formato del correo es incorrecto (ejemplo@gmail.com)")
+            return;
+        }
+        //validacion para la contraseña
+        if (!formData.id && formData.password.length < 6) {
+            alert("❌ La contraseña almenos debe tener 6 caracteres")
+            return;
+        }
+
+        //campo de mapa sea obligatorio 
+        if (formData.latitud === centerLima.lat && formData.longitud === centerLima.lng) {
+            alert("⚠️ La ubicación es obligatoria. Por favor, use el buscador o mueva el marcador en el mapa.");
+            return; // Detiene el registro
         }
 
         const metodo = formData.id ? 'PUT' : 'POST';
@@ -155,7 +268,8 @@ export const PageUsuarios = () => {
             console.error("Error en la conexión:", error);
         }
     };
-
+    
+    //NO SE ESTA UTILIZANDO
     const eliminarUsuario = (id) => {
         if (!window.confirm("¿Está seguro de eliminar este usuario?")) return;
         fetch(`http://localhost:9090/api/usuarios/${id}`, {
@@ -245,7 +359,7 @@ export const PageUsuarios = () => {
                 </GoogleMap>
 
                 <select value={formData.rol} onChange={e => setFormData({ ...formData, rol: e.target.value })}>
-                    
+
                     <option value="MOTORIZADO">MOTORIZADO</option>
                     <option value="ADMINISTRADOR">ADMINISTRADOR</option>
                 </select>
@@ -312,12 +426,106 @@ export const PageUsuarios = () => {
                                     >
                                         {u.estado ? "🚫" : "✔️"}
                                     </button>
+                                    <button
+                                        className="btn-icon view"
+                                        onClick={() => verDetalles(u)} // <--- ESTO HAY QUE CAMBIAR
+                                        title="Ver Detalles"
+                                    >
+                                        👁️
+                                    </button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+            {usuarioSeleccionado && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3>Detalles del Personal</h3>
+                            <button className="btn-close" onClick={() => setUsuarioSeleccionado(null)}>×</button>
+                        </div>
+
+                        <div className="modal-body">
+                            <div className="detail-row"><strong>DNI:</strong> {usuarioSeleccionado.dni}</div>
+                            <div className="detail-row"><strong>Nombre:</strong> {usuarioSeleccionado.nombre}</div>
+                            <div className="detail-row"><strong>Apellido:</strong> {usuarioSeleccionado.apellido}</div>
+
+                            <div className="detail-row">
+                                <strong>Teléfono:</strong> {usuarioSeleccionado.telefono || 'No registrado'}
+                                {usuarioSeleccionado.telefono && (
+                                    <button
+                                        onClick={() => abrirWhatsapp(usuarioSeleccionado.telefono)}
+                                        style={{
+                                            marginLeft: '10px',
+                                            background: '#25D366',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            padding: '2px 8px'
+                                        }}
+                                    >
+                                        WhatsApp 📱
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="detail-row"><strong>Correo:</strong> {usuarioSeleccionado.correo}</div>
+                            <div className="detail-row"><strong>Rol:</strong> {usuarioSeleccionado.rol}</div>
+
+                            <div className="detail-row">
+                                <strong>Estado:</strong>
+                                <span className={usuarioSeleccionado.estado ? "status-active" : "status-inactive"}>
+                                    {usuarioSeleccionado.estado ? " Activo" : " Inactivo"}
+                                </span>
+                            </div>
+
+                            <div className="detail-row" style={{ marginTop: '10px' }}>
+                                <strong>Dirección:</strong>
+                                <span style={{ marginLeft: '5px', color: '#555' }}>
+                                    {direccionTexto || 'No especificada'}
+                                </span>
+                            </div>
+
+                            {/* SECCIÓN DE COORDENADAS CON BOTÓN DE MAPS */}
+                            <div className="detail-row" style={{ fontSize: '12px', marginTop: '10px', color: '#333', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <strong>Coordenadas:</strong>
+                                <span style={{ marginLeft: '5px' }}>
+                                    {usuarioSeleccionado.ubicacionCasa?.coordinates[1]}, {usuarioSeleccionado.ubicacionCasa?.coordinates[0]}
+                                </span>
+
+                                {/* Botón Ir a la dirección */}
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${usuarioSeleccionado.ubicacionCasa?.coordinates[1]},${usuarioSeleccionado.ubicacionCasa?.coordinates[0]}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        marginLeft: '10px',
+                                        background: '#4285F4',
+                                        color: 'white',
+                                        textDecoration: 'none',
+                                        padding: '4px 10px',
+                                        borderRadius: '4px',
+                                        fontSize: '11px',
+                                        fontWeight: 'bold',
+                                        display: 'inline-flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    Ver en Maps 📍
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-save" onClick={() => setUsuarioSeleccionado(null)}>Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
