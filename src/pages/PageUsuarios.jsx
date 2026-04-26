@@ -2,6 +2,9 @@ import React, { useEffect, useState, useContext, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import './PageUsuarios.css';
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
+import Aos from 'aos';
+import "aos/dist/aos.css";
+
 
 const containerStyle = { width: '100%', height: '300px', borderRadius: '8px', marginBottom: '10px' };
 const centerLima = { lat: -12.1585, lng: -76.9535 };
@@ -13,6 +16,7 @@ export const PageUsuarios = () => {
     const autocompleteRef = useRef(null);
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     const [direccionTexto, setDireccionTexto] = useState("Cargando dirección...");
+    const [busqueda, setBusqueda] = useState("");
 
     const formInicial = {
         id: null,
@@ -28,6 +32,7 @@ export const PageUsuarios = () => {
         longitud: centerLima.lng
     };
 
+
     const [formData, setFormData] = useState(formInicial);
     const { token } = useContext(AuthContext);
 
@@ -36,6 +41,17 @@ export const PageUsuarios = () => {
         googleMapsApiKey: "AIzaSyAQf8CE1mCu7K3VjVpuKVemI4Yr7ax9uZA", // Asegúrate de que esta API Key sea válida
         libraries: libraries
     });
+
+    // 3. EFECTOS (AOS y Carga de Datos)
+    useEffect(() => {
+        Aos.init({
+            duration: 800,
+            once: true,
+        });
+        if (token) obtenerUsuarios();
+    }, [token]);
+
+
     //obtener la direccion atraves de las cordenadas
     const obtenerDireccionTexto = (lat, lng, callback) => {
         if (!window.google) return;
@@ -284,7 +300,7 @@ export const PageUsuarios = () => {
 
     return (
         <div className="usuarios-container">
-            <div id='formulario-registro' style={{ scrollSnapMarginTop: '100' }} className="edit-form-container">
+            <div id='formulario-registro' style={{ scrollSnapMarginTop: '100' }} className="edit-form-container" data-aos="fade-right">
                 <h3>{formData.id ? `Editando a: ${formData.nombre}` : "Registrar Nuevo Personal"}</h3>
 
                 <input
@@ -375,8 +391,71 @@ export const PageUsuarios = () => {
                     )}
                 </div>
             </div>
+            {/* 1. CONTENEDOR DEL BUSCADOR (Va antes de la tabla) */}
+            <div style={{
+                display: 'flex',
+                gap: '10px',
+                marginBottom: '20px',
+                maxWidth: '500px'
 
-            <div className="tabla-responsive">
+            }}
+                data-aos="fade-up"
+                data-aos-delay="200">
+                {/* El Input */}
+                <input
+                    type="text"
+                    placeholder="🔍 Buscar por nombre o DNI..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    className="form-control"
+                    style={{ flex: 1, borderRadius: '8px' }}
+                />
+
+                {/* AQUÍ VA EL BOTÓN DE LIMPIAR */}
+                {busqueda && (
+                    <button
+                        onClick={() => setBusqueda("")}
+                        style={{
+                            padding: '0 20px',
+                            backgroundColor: '#f44336',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Limpiar
+                    </button>
+                )}
+            </div>
+
+            {/* 2. TU TABLA (Debajo del buscador) */}
+            <div className="tabla-container">
+                <table className="table">
+                    <thead>
+                        {/* ... tus cabeceras DNI, NOMBRE, etc ... */}
+                    </thead>
+                    <tbody>
+                        {/* Aquí va el código del .filter().map() que ya tienes listo */}
+                        {usuarios
+                            .filter(u => {
+                                const termino = busqueda.toLowerCase();
+                                const nombreCompleto = `${u.nombre} ${u.apellido}`.toLowerCase();
+                                const dni = u.dni ? u.dni.toString() : "";
+                                return nombreCompleto.includes(termino) || dni.includes(termino);
+                            })
+                            .map(u => (
+                                <tr key={u.id}>
+                                    {/* ... contenido de la fila ... */}
+                                </tr>
+                            ))
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div className="tabla-responsive" data-aos="fade-up">
                 <table className="tabla-pkalab">
                     <thead>
                         <tr>
@@ -391,157 +470,167 @@ export const PageUsuarios = () => {
                     </thead>
                     {/* Busca esta parte en tu tabla y reemplaza el contenido del <tbody> */}
                     <tbody>
-                        {usuarios.map(u => (
-                            <tr key={u.id} style={{ opacity: u.estado ? 1 : 0.6 }}>
-                                <td><strong>{u.dni}</strong></td>
-                                <td>{u.nombre} {u.apellido}</td>
-                                <td>{u.telefono || '---'}</td>
-                                <td>{u.correo}</td>
-                                <td>{u.rol}</td>
+                        {usuarios
+                            // 1. FILTRADO: Creamos una lista temporal con solo los que coinciden
+                            .filter(u => {
+                                const termino = busqueda.toLowerCase(); // Lo que escribes en el input
+                                const nombreCompleto = `${u.nombre} ${u.apellido}`.toLowerCase();
+                                const dni = u.dni ? u.dni.toString() : "";
 
-                                {/* Columna de Estado */}
-                                <td style={{ textAlign: 'center' }}>
-                                    {u.estado ? "✅" : "❌"}
-                                </td>
+                                // Retorna 'true' si el nombre o el DNI contienen lo que buscas
+                                return nombreCompleto.includes(termino) || dni.includes(termino);
+                            })
+                            // 2. MAPEADO: Dibujamos solo los usuarios que pasaron el filtro anterior
+                            .map(u => (
+                                <tr key={u.id} style={{ opacity: u.estado ? 1 : 0.6 }}>
+                                    <td><strong>{u.dni}</strong></td>
+                                    <td>{u.nombre} {u.apellido}</td>
+                                    <td>{u.telefono || '---'}</td>
+                                    <td>{u.correo}</td>
+                                    <td>{u.rol}</td>
 
-                                <td>
-                                    <button
-                                        className="btn-icon edit"
-                                        disabled={!u.estado}
-                                        onClick={() => {
-                                            console.log("Intentando subir al formulario..."); // Para verificar en consola
+                                    {/* Columna de Estado */}
+                                    <td style={{ textAlign: 'center' }}>
+                                        {u.estado ? "✅" : "❌"}
+                                    </td>
 
-                                            const lat = u.ubicacionCasa ? u.ubicacionCasa.coordinates[1] : centerLima.lat;
-                                            const lng = u.ubicacionCasa ? u.ubicacionCasa.coordinates[0] : centerLima.lng;
+                                    <td>
+                                        {/* Botón Editar */}
+                                        <button
+                                            className="btn-icon edit"
+                                            disabled={!u.estado}
+                                            onClick={() => {
+                                                console.log("Intentando subir al formulario...");
 
-                                            // Cargar datos
-                                            setFormData({ ...u, latitud: lat, longitud: lng, password: '' });
+                                                const lat = u.ubicacionCasa ? u.ubicacionCasa.coordinates[1] : centerLima.lat;
+                                                const lng = u.ubicacionCasa ? u.ubicacionCasa.coordinates[0] : centerLima.lng;
 
-                                            // Intentar subir de la forma más robusta posible
-                                            const elemento = document.getElementById('formulario-registro');
-                                            if (elemento) {
-                                                elemento.scrollIntoView({
-                                                    behavior: 'smooth',
-                                                    block: 'start'
-                                                });
-                                            } else {
-                                                // Si el ID falla, forzamos el inicio de la página
-                                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                                            }
-                                        }}
-                                    >
-                                        ✏️
-                                    </button>
+                                                setFormData({ ...u, latitud: lat, longitud: lng, password: '' });
 
-                                    {/* Switch de habilitar/deshabilitar */}
-                                    <button
-                                        className="btn-icon status"
-                                        onClick={() => cambiarEstado(u.id, u.estado)}
-                                        title={u.estado ? "Deshabilitar" : "Habilitar"}
-                                        style={{ marginLeft: '10px' }}
-                                    >
-                                        {u.estado ? "🚫" : "✔️"}
-                                    </button>
-                                    <button
-                                        className="btn-icon view"
-                                        onClick={() => verDetalles(u)} // <--- ESTO HAY QUE CAMBIAR
-                                        title="Ver Detalles"
-                                    >
-                                        👁️
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                                const elemento = document.getElementById('formulario-registro');
+                                                if (elemento) {
+                                                    elemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                } else {
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }
+                                            }}
+                                        >
+                                            ✏️
+                                        </button>
+
+                                        {/* Switch de habilitar/deshabilitar */}
+                                        <button
+                                            className="btn-icon status"
+                                            onClick={() => cambiarEstado(u.id, u.estado)}
+                                            title={u.estado ? "Deshabilitar" : "Habilitar"}
+                                            style={{ marginLeft: '10px' }}
+                                        >
+                                            {u.estado ? "🚫" : "✔️"}
+                                        </button>
+
+                                        {/* Botón Ver Detalles */}
+                                        <button
+                                            className="btn-icon view"
+                                            onClick={() => verDetalles(u)}
+                                            title="Ver Detalles"
+                                        >
+                                            👁️
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
                     </tbody>
                 </table>
             </div>
-            {usuarioSeleccionado && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h3>Detalles del Personal</h3>
-                            <button className="btn-close" onClick={() => setUsuarioSeleccionado(null)}>×</button>
-                        </div>
+            {
+                usuarioSeleccionado && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h3>Detalles del Personal</h3>
+                                <button className="btn-close" onClick={() => setUsuarioSeleccionado(null)}>×</button>
+                            </div>
 
-                        <div className="modal-body">
-                            <div className="detail-row"><strong>DNI:</strong> {usuarioSeleccionado.dni}</div>
-                            <div className="detail-row"><strong>Nombre:</strong> {usuarioSeleccionado.nombre}</div>
-                            <div className="detail-row"><strong>Apellido:</strong> {usuarioSeleccionado.apellido}</div>
+                            <div className="modal-body">
+                                <div className="detail-row"><strong>DNI:</strong> {usuarioSeleccionado.dni}</div>
+                                <div className="detail-row"><strong>Nombre:</strong> {usuarioSeleccionado.nombre}</div>
+                                <div className="detail-row"><strong>Apellido:</strong> {usuarioSeleccionado.apellido}</div>
 
-                            <div className="detail-row">
-                                <strong>Teléfono:</strong> {usuarioSeleccionado.telefono || 'No registrado'}
-                                {usuarioSeleccionado.telefono && (
-                                    <button
-                                        onClick={() => abrirWhatsapp(usuarioSeleccionado.telefono)}
+                                <div className="detail-row">
+                                    <strong>Teléfono:</strong> {usuarioSeleccionado.telefono || 'No registrado'}
+                                    {usuarioSeleccionado.telefono && (
+                                        <button
+                                            onClick={() => abrirWhatsapp(usuarioSeleccionado.telefono)}
+                                            style={{
+                                                marginLeft: '10px',
+                                                background: '#25D366',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                padding: '2px 8px'
+                                            }}
+                                        >
+                                            WhatsApp 📱
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="detail-row"><strong>Correo:</strong> {usuarioSeleccionado.correo}</div>
+                                <div className="detail-row"><strong>Rol:</strong> {usuarioSeleccionado.rol}</div>
+
+                                <div className="detail-row">
+                                    <strong>Estado:</strong>
+                                    <span className={usuarioSeleccionado.estado ? "status-active" : "status-inactive"}>
+                                        {usuarioSeleccionado.estado ? " Activo" : " Inactivo"}
+                                    </span>
+                                </div>
+
+                                <div className="detail-row" style={{ marginTop: '10px' }}>
+                                    <strong>Dirección:</strong>
+                                    <span style={{ marginLeft: '5px', color: '#555' }}>
+                                        {direccionTexto || 'No especificada'}
+                                    </span>
+                                </div>
+
+                                {/* SECCIÓN DE COORDENADAS CON BOTÓN DE MAPS */}
+                                <div className="detail-row" style={{ fontSize: '12px', marginTop: '10px', color: '#333', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <strong>Coordenadas:</strong>
+                                    <span style={{ marginLeft: '5px' }}>
+                                        {usuarioSeleccionado.ubicacionCasa?.coordinates[1]}, {usuarioSeleccionado.ubicacionCasa?.coordinates[0]}
+                                    </span>
+
+                                    {/* Botón Ir a la dirección */}
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${usuarioSeleccionado.ubicacionCasa?.coordinates[1]},${usuarioSeleccionado.ubicacionCasa?.coordinates[0]}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         style={{
                                             marginLeft: '10px',
-                                            background: '#25D366',
+                                            background: '#4285F4',
                                             color: 'white',
-                                            border: 'none',
+                                            textDecoration: 'none',
+                                            padding: '4px 10px',
                                             borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            padding: '2px 8px'
+                                            fontSize: '11px',
+                                            fontWeight: 'bold',
+                                            display: 'inline-flex',
+                                            alignItems: 'center'
                                         }}
                                     >
-                                        WhatsApp 📱
-                                    </button>
-                                )}
+                                        Ver en Maps 📍
+                                    </a>
+                                </div>
                             </div>
 
-                            <div className="detail-row"><strong>Correo:</strong> {usuarioSeleccionado.correo}</div>
-                            <div className="detail-row"><strong>Rol:</strong> {usuarioSeleccionado.rol}</div>
-
-                            <div className="detail-row">
-                                <strong>Estado:</strong>
-                                <span className={usuarioSeleccionado.estado ? "status-active" : "status-inactive"}>
-                                    {usuarioSeleccionado.estado ? " Activo" : " Inactivo"}
-                                </span>
+                            <div className="modal-footer">
+                                <button className="btn-save" onClick={() => setUsuarioSeleccionado(null)}>Cerrar</button>
                             </div>
-
-                            <div className="detail-row" style={{ marginTop: '10px' }}>
-                                <strong>Dirección:</strong>
-                                <span style={{ marginLeft: '5px', color: '#555' }}>
-                                    {direccionTexto || 'No especificada'}
-                                </span>
-                            </div>
-
-                            {/* SECCIÓN DE COORDENADAS CON BOTÓN DE MAPS */}
-                            <div className="detail-row" style={{ fontSize: '12px', marginTop: '10px', color: '#333', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <strong>Coordenadas:</strong>
-                                <span style={{ marginLeft: '5px' }}>
-                                    {usuarioSeleccionado.ubicacionCasa?.coordinates[1]}, {usuarioSeleccionado.ubicacionCasa?.coordinates[0]}
-                                </span>
-
-                                {/* Botón Ir a la dirección */}
-                                <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${usuarioSeleccionado.ubicacionCasa?.coordinates[1]},${usuarioSeleccionado.ubicacionCasa?.coordinates[0]}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        marginLeft: '10px',
-                                        background: '#4285F4',
-                                        color: 'white',
-                                        textDecoration: 'none',
-                                        padding: '4px 10px',
-                                        borderRadius: '4px',
-                                        fontSize: '11px',
-                                        fontWeight: 'bold',
-                                        display: 'inline-flex',
-                                        alignItems: 'center'
-                                    }}
-                                >
-                                    Ver en Maps 📍
-                                </a>
-                            </div>
-                        </div>
-
-                        <div className="modal-footer">
-                            <button className="btn-save" onClick={() => setUsuarioSeleccionado(null)}>Cerrar</button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-        </div>
+        </div >
     );
 };
