@@ -1,0 +1,97 @@
+.asistencia-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header-section {
+    margin-bottom: 30px;
+}
+
+.header-section h1 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.header-section p {
+    color: #7f8c8d;
+}
+
+.btn-refresh {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-refresh:hover {
+    background-color: #2980b9;
+}
+
+.table-responsive {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.asistencia-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.asistencia-table th {
+    background-color: #f1f3f5;
+    color: #495057;
+    padding: 15px;
+    font-weight: 600;
+}
+
+.asistencia-table td {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Resaltado para registros inválidos */
+.row-invalid {
+    background-color: #fff5f5;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.status-badge.valid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.invalid {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.user-cell strong {
+    color: #2c3e50;
+}
+
+.obs-cell {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.loader {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #3498db;
+}
