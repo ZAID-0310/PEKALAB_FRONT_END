@@ -5,11 +5,10 @@ import { Principal } from "./pages/Principal";
 import { PageUsuarios } from "./pages/PageUsuarios";
 import { Inicio } from "./pages/PageInicio";
 import { PageTiendas } from "./pages/PageTiendas";
-import {PageRequerimientos} from"./pages/PageRequerimientos";
-import { PageHorario } from "./pages/PageHorario"; // Revisa que la ruta sea correcta
-// Asegúrate de que este nombre sea correcto
-// Asegúrate de importar PaginaImportar si la vas a usar
-// import { PaginaImportar } from "./pages/PaginaImportar"; 
+import { PageRequerimientos } from "./pages/PageRequerimientos";
+import { PageHorario } from "./pages/PageHorario"; 
+// 1. IMPORTA TU NUEVA PÁGINA AQUÍ
+import PageAsistencia from "./pages/PageAsistencia"; 
 
 function App() {
   return (
@@ -20,14 +19,16 @@ function App() {
 
         <Route path="/dashboard" element={<PrivateRoute><Principal /></PrivateRoute>}>
           <Route index element={<Inicio />} /> 
-        
+          
           <Route path="usuarios" element={<PageUsuarios />} />
           
-          {/* 2. CAMBIA ESTA LÍNEA: Quita el <div> y pon el componente */}
           <Route path="horarios" element={<PageHorario />} />
           
-          <Route path="importar" element={<PageRequerimientos/>} /> 
-          <Route path="tiendas" element={<PageTiendas/>}/> 
+          {/* 2. REGISTRA LA RUTA DE ASISTENCIAS */}
+          <Route path="asistencias" element={<PageAsistencia />} /> 
+          
+          <Route path="importar" element={<PageRequerimientos />} /> 
+          <Route path="tiendas" element={<PageTiendas />} /> 
         </Route>
       </Routes>
     </BrowserRouter>
