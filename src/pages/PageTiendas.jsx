@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import './PageTiendas.css';
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
+import Swal from 'sweetalert2';
 
 const containerStyle = { width: '100%', height: '300px', borderRadius: '8px', marginBottom: '10px' };
 const centerLima = { lat: -12.1585, lng: -76.9535 };
@@ -117,23 +118,65 @@ export const PageTiendas = () => {
     useEffect(() => { if (token) obtenerTiendas(); }, [token]);
 
     const guardarTienda = async () => {
+        // 1. Validación previa de RUC
+        if (formData.ruc.length !== 11) {
+            Swal.fire({
+                title: 'RUC Inválido',
+                text: 'El RUC debe tener exactamente 11 dígitos.',
+                icon: 'warning',
+                confirmButtonColor: '#f39c12'
+            });
+            return;
+        }
+
         const metodo = formData.id ? 'PUT' : 'POST';
         const url = formData.id
             ? `http://localhost:9090/api/tiendas/${formData.id}`
             : 'http://localhost:9090/api/tiendas/registrar';
 
-        const res = await fetch(url, {
-            method: metodo,
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        try {
+            const res = await fetch(url, {
+                method: metodo,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
 
-        if (res.ok) {
-            alert(formData.id ? "Tienda actualizada" : "Tienda registrada");
-            setFormData(formInicial);
-            obtenerTiendas();
+            // 2. Aquí es donde pones el SweetAlert de éxito
+            if (res.ok) {
+                Swal.fire({
+                    title: '¡Logrado!',
+                    text: formData.id ? 'Tienda actualizada correctamente' : 'Tienda registrada con éxito',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Genial'
+                });
+
+                // Limpiamos el formulario y refrescamos la lista
+                setFormData(formInicial);
+                obtenerTiendas();
+            } else {
+                // Opcional: Un mensaje de error si el servidor responde mal (ej. RUC duplicado)
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo procesar la solicitud. Revisa los datos.',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        } catch (error) {
+            // Por si se cae el backend o no hay internet
+            Swal.fire({
+                title: 'Error de conexión',
+                text: 'El servidor no responde.',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
         }
     };
+
     // Solo permite números y limita la longitud
     const validarSoloNumeros = (valor, maxLen) => {
         const soloNumeros = valor.replace(/\D/g, ''); // Elimina cualquier cosa que no sea número
@@ -196,70 +239,70 @@ export const PageTiendas = () => {
                     <input type="number" value={formData.radioPermitidoMetros} onChange={e => setFormData({ ...formData, radioPermitidoMetros: parseInt(e.target.value) })} />
                 </div>
 
-                <div className='tienda-button-group'>   
-                <button onClick={guardarTienda} className="btn-save">{formData.id ? "Actualizar Tienda" : "Registrar Tienda"}</button>
-                {formData.id && <button onClick={() => setFormData(formInicial)} className="btn-cancel">Cancelar</button>}
-                </div> 
+                <div className='tienda-button-group'>
+                    <button onClick={guardarTienda} className="btn-save">{formData.id ? "Actualizar Tienda" : "Registrar Tienda"}</button>
+                    {formData.id && <button onClick={() => setFormData(formInicial)} className="btn-cancel">Cancelar</button>}
+                </div>
             </div>
 
-            <div className='tienda-responsive'>        
-            <table className="tabla-pkalab-tienda">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>RUC</th>
-                        <th>Radio</th>
-                        <th>ESTADO</th>
-                        <th>ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {tiendas.map(t => (
-                        <tr key={t.id}>
-                            <td>{t.nombreTienda}</td>
-                            <td>{t.ruc}</td>
-                            <td>{t.radioPermitidoMetros}m</td>
-
-                            {/* Columna Estado: Checkbox igual a tu imagen de Usuarios */}
-                            <td>
-                                <input
-                                    type="checkbox"
-                                    checked={t.estado}
-                                    readOnly
-                                    style={{ cursor: 'default' }}
-                                />
-                            </td>
-
-                            <td>
-                                <div className="tienda-acciones-buttons">
-                                    {/* Botón Editar (Lápiz naranja) */}
-                                    <button
-                                        className="btn-icon edit"
-                                        disabled={!t.estado}
-                                        onClick={() => {
-                                            const lat = t.ubicacion ? t.ubicacion.coordinates[1] : centerLima.lat;
-                                            const lng = t.ubicacion ? t.ubicacion.coordinates[0] : centerLima.lng;
-                                            setFormData({ ...t, latitud: lat, longitud: lng });
-                                            window.scrollTo(0, 0);
-                                        }}
-                                    >
-                                        ✏️
-                                    </button>
-
-                                    {/* Botón Bloquear/Desbloquear (Icono rojo de prohibido) */}
-                                    <button
-                                        className="tienda-btn-icon status"
-                                        onClick={() => cambiarEstadoTienda(t.id, t.estado)}
-                                    >
-                                        {t.estado ? "🚫" : "✔️"}
-                                    </button>
-                                </div>
-                            </td>
+            <div className='tienda-responsive'>
+                <table className="tabla-pkalab-tienda">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>RUC</th>
+                            <th>Radio</th>
+                            <th>ESTADO</th>
+                            <th>ACCIONES</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-            </div> 
+                    </thead>
+                    <tbody>
+                        {tiendas.map(t => (
+                            <tr key={t.id}>
+                                <td>{t.nombreTienda}</td>
+                                <td>{t.ruc}</td>
+                                <td>{t.radioPermitidoMetros}m</td>
+
+                                {/* Columna Estado: Checkbox igual a tu imagen de Usuarios */}
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={t.estado}
+                                        readOnly
+                                        style={{ cursor: 'default' }}
+                                    />
+                                </td>
+
+                                <td>
+                                    <div className="tienda-acciones-buttons">
+                                        {/* Botón Editar (Lápiz naranja) */}
+                                        <button
+                                            className="btn-icon edit"
+                                            disabled={!t.estado}
+                                            onClick={() => {
+                                                const lat = t.ubicacion ? t.ubicacion.coordinates[1] : centerLima.lat;
+                                                const lng = t.ubicacion ? t.ubicacion.coordinates[0] : centerLima.lng;
+                                                setFormData({ ...t, latitud: lat, longitud: lng });
+                                                window.scrollTo(0, 0);
+                                            }}
+                                        >
+                                            ✏️
+                                        </button>
+
+                                        {/* Botón Bloquear/Desbloquear (Icono rojo de prohibido) */}
+                                        <button
+                                            className="tienda-btn-icon status"
+                                            onClick={() => cambiarEstadoTienda(t.id, t.estado)}
+                                        >
+                                            {t.estado ? "🚫" : "✔️"}
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
